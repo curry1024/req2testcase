@@ -7,9 +7,10 @@
 - 📄 **多格式输入**：PDF、Word（含内嵌图片）、Markdown、图片
 - 🧠 **LLM 需求解析**：自由文本需求 → 结构化 JSON
 - 🌲 **功能点分解**：拆解为原子可测功能点，生成 XMind 脑图供人工审核
-- ✅ **用例生成 + 自动审查**：覆盖度、格式、模糊表述自动质检
+- ✅ **用例生成 + 自动审查**：13 项自动质检（覆盖度、格式、边界值、枚举遍历、P0 分配等）
 - 📊 **专业输出**：智能分 Sheet、条件着色、下拉选项、汇总统计
 - 🔄 **增量维护**：需求变更时自动备份并合并，保留已审核内容
+- 🛠️ **断点恢复**：支持工作中断后从断点续跑，不重头开始
 
 ## 工作流
 
@@ -73,6 +74,19 @@ pip install pdfplumber PyMuPDF python-docx openpyxl
 修改用例 / 需求变更 / 补充用例
 ```
 
+**错误恢复**（工作中断后）：
+
+```powershell
+# 检查当前状态
+.venv\Scripts\python.exe scripts\validate.py check .opencode/work/<目录名>
+
+# 查看从哪步恢复
+.venv\Scripts\python.exe scripts\validate.py resume .opencode/work/<目录名>
+
+# 清理损坏产物
+.venv\Scripts\python.exe scripts\validate.py clean .opencode/work/<目录名>
+```
+
 ## 项目结构
 
 ```
@@ -81,10 +95,12 @@ pip install pdfplumber PyMuPDF python-docx openpyxl
 ├── .opencode/
 │   ├── skills/                # 工作流 Skill 定义
 │   │   ├── testcase-gen/      # 主流程编排（Step1→6）
-│   │   ├── step1-input/       # 需求输入
+│   │   ├── step1-input/       # 需求输入（PDF/Word/MD）
+│   │   ├── step1-image/       # 图片识别（独立 skill）
 │   │   ├── step2-parse/       # 需求解析
 │   │   ├── step3-breakdown/   # 功能点分解
 │   │   ├── step4-generate/    # 用例生成
+│   │   │   └── refs/          # 生成规则参考（rules.md、checklist.md）
 │   │   ├── step5-review/      # 用例审查
 │   │   ├── step6-output/      # 用例输出
 │   │   └── step7-maintain/    # 售后维护（增量更新）
@@ -94,7 +110,8 @@ pip install pdfplumber PyMuPDF python-docx openpyxl
     ├── generate_xmind.py      # 功能点 → XMind 脑图
     ├── generate_excel.py      # 用例 → Excel 预览
     ├── generate_final_excel.py# 最终多 Sheet 专业排版 Excel
-    ├── review.py              # 用例自动审查
+    ├── review.py              # 用例自动审查（13 项检查）
+    ├── validate.py            # 工作流校验与断点恢复
     ├── backup.py              # 变更前自动备份
     └── merge_testcases.py     # 增量合并用例
 ```
