@@ -12,6 +12,21 @@ description: |
 
 将 Step2 的结构化需求拆解为原子级可测功能点，生成 XMind 脑图供用户审核确认。
 
+## 恢复检查
+
+执行本步骤前，先检查上游产物：
+
+```powershell
+.venv\Scripts\python.exe scripts\validate.py check .opencode/work/<目录名> --step 2
+```
+
+- 如果 Step1~2 产物正常 → 继续执行 Step3
+- 如果 Step2 产物缺失 → 重新执行 Step2（`step2-parse`）
+- 如果 `step2_requirements.json` JSON 解析失败 → 检查文件是否被截断，重新执行 Step2
+- 如果 `step2_requirements.json` 中 `requirements` 为空数组 → 检查 Step1 原始文本是否提取完整
+
+**断点恢复**：如果 Step3 执行到一半中断（如已生成 JSON 但未生成 XMind），直接重新运行 Step3 即可。
+
 ## 为什么需要确认
 
 - LLM 对需求的理解可能存在偏差

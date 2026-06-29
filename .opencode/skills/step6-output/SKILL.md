@@ -11,6 +11,23 @@ description: |
 
 智能分析用例内容，生成可直接交付 QA 团队的专业 Excel 文件。
 
+## 恢复检查
+
+执行本步骤前，先检查上游产物：
+
+```powershell
+.venv\Scripts\python.exe scripts\validate.py check .opencode/work/<目录名> --step 5
+```
+
+- 如果 Step1~5 产物正常 → 继续执行 Step6
+- 如果 Step4 产物缺失（Step5 是检查步骤，不影响） → 重新执行 Step4
+- 如果 `step4_testcases.json` JSON 解析失败 → 重新执行 Step4
+
+**断点恢复**：
+- Step6 为最终输出步骤，可随时重新运行
+- 如果 Excel 生成失败但 JSON 正常 → 可单独调用 `scripts/generate_final_excel.py` 补生成
+- 如果输出文件已存在 → 自动递增版本号（v1 → v2）
+
 ## 输入
 
 从 `.opencode/work/<工作目录>/step4_testcases.json` 读取最终确认的用例。

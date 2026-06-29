@@ -15,8 +15,8 @@ description: |
 ## 工作流
 
 ```
-Step1: 需求输入     -- 读取本地文档 (PDF/Word/MD/图片)
-    |
+Step1: 需求输入     -- 读取本地文档 (PDF/Word/MD)
+  │                    如果包含图片，同时加载 step1-image
 Step2: 需求解析     -- LLM 提取结构化需求信息
     |
 Step3: 功能点分解   -- 拆解为原子可测功能点 + 生成 XMind 脑图
@@ -43,9 +43,12 @@ Step6: 用例输出     -- 智能分Sheet + 专业排版，交付最终文件
 用户提供需求文档路径后，按顺序调用各步骤 skill：
 
 1. **step1-input**: 读取并提取文档原始内容
+   - 如果需求包含图片（.png/.jpg/.jpeg），同时加载 **step1-image**
 2. **step2-parse**: LLM 解析需求为结构化 JSON
 3. **step3-breakdown**: 拆解功能点 + 生成 XMind，用户确认
 4. **step4-generate**: 生成用例 + Excel 预览，用户确认
+   - 生成规则详见 `step4-generate/refs/rules.md`
+   - 自检清单详见 `step4-generate/refs/checklist.md`
 5. **step5-review**: 自动审查用例质量，用户确认
 6. **step6-output**: 最终格式化输出
 
@@ -73,3 +76,39 @@ Step6: 用例输出     -- 智能分Sheet + 专业排版，交付最终文件
 ```
 
 出问题时，从对应文档的目录向上溯源排查。
+
+## 错误恢复与断点续跑
+
+当某一步骤执行失败或中途断掉时，使用 `scripts/validate.py` 检查产物状态并确定恢复点：
+
+### 检查当前状态
+
+```powershell
+# 检查所有步骤产物
+.venv\Scripts\python.exe scripts\validate.py check .opencode/work/<目录名>
+
+# 输出应从哪一步恢复
+.venv\Scripts\python.exe scripts\validate.py resume .opencode/work/<目录名>
+```
+
+### 清理损坏产物
+
+```powershell
+# 清理损坏的产物，保留最后一步有效的
+.venv\Scripts\python.exe scripts\validate.py clean .opencode/work/<目录名>
+```
+
+### 恢复策略
+
+| 失败场景 | 恢复方式 |
+|----------|----------|
+| 某步执行到一半中断 | 直接重新运行该步骤，会覆盖旧文件 |
+| 上游产物缺失/损坏 | 用 `validate.py resume` 找到断点，从该步重新执行 |
+| JSON 解析失败 | 检查文件是否截断，重新运行上一步 |
+| 模型超时/上下文溢出 | 重新运行该步骤，或拆分需求后分批处理 |
+| 脚本执行失败 | 检查 Python 依赖（`.venv`）和脚本路径 |
+
+### 各步骤恢复指引
+
+每个步骤的 SKILL.md 开头都有「恢复检查」段落，说明该步骤的前置检查和断点恢复方式。
+

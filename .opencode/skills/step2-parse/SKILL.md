@@ -12,6 +12,20 @@ description: |
 
 使用 LLM 将原始需求文本解析为结构化 JSON 数据。
 
+## 恢复检查
+
+执行本步骤前，先检查上一步产物：
+
+```powershell
+.venv\Scripts\python.exe scripts\validate.py check .opencode/work/<目录名> --step 1
+```
+
+- 如果 Step1 产物正常 → 继续执行 Step2
+- 如果 Step1 产物缺失/损坏 → 重新执行 Step1（`step1-input`）
+- 如果 `step1_raw_content.txt` 存在但内容为空 → 检查源文件路径是否正确，重新提取
+
+**断点恢复**：如果 Step2 执行到一半中断（如已写入部分 JSON），直接重新运行 Step2 即可，会覆盖旧文件。
+
 ## 输入
 
 从 `.opencode/work/_current.txt` 获取当前工作目录名，然后读取该目录下的 `.opencode/work/<目录名>/step1_raw_content.txt`。
